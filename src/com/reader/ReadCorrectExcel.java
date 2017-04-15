@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.poi.ss.usermodel.Workbook;
+
 import com.excel.ExcelReader;
 import com.excel.HSSFExcelReader;
 import com.excel.XSSFExcelReader;
@@ -23,14 +25,15 @@ public class ReadCorrectExcel {
 	
 	public void read(String fileName) throws XLSFatalException {
 		
-		ExcelReader hssfReader = null, xssfReader = null;
+		ExcelReader excelReader = null;
 		InputStream fis = null;
+		Workbook excelWB = null;
 		boolean isError = false;
 		
 		try {
-			xssfReader = new XSSFExcelReader();
-			fis = xssfReader.getFileInputStream(fileName);
-			xssfReader.getWorkbookObj(fis);
+			excelReader = new XSSFExcelReader();
+			fis = excelReader.getFileInputStream(fileName);
+			excelWB = excelReader.getWorkbookObj(fis);
 		}catch(Exception e) {
 			e.printStackTrace();
 			isError = true;
@@ -41,14 +44,12 @@ public class ReadCorrectExcel {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("Coming here " + isError);
 		if(isError) {
 			try {
 				
-				hssfReader = new HSSFExcelReader();
-				fis = hssfReader.getFileInputStream(fileName);
-				hssfReader.getWorkbookObj(fis);
-				System.out.println("read");
+				excelReader = new HSSFExcelReader();
+				fis = excelReader.getFileInputStream(fileName);
+				excelWB = excelReader.getWorkbookObj(fis);
 			}catch(Exception e) {
 				throw new XLSFatalException("Cannot Read this type of File");
 			}
@@ -61,7 +62,10 @@ public class ReadCorrectExcel {
 			}
 		}
 		
-		System.out.println("Done");
+		excelReader.setWorkbook(excelWB);
+		excelReader.readWorkbooks();
+		
+		
 		
 		
 	}
@@ -72,9 +76,9 @@ public class ReadCorrectExcel {
 		ReadCorrectExcel readExcel = new ReadCorrectExcel();
 		String fileName = null; 
 		try { 
-			//fileName = "4.20 DB ROBERTS COMPANY LEVEL CONFLICT MINERAL 4.20 TEMPLATE 1-17-17.xls"; // hssf
+			fileName = "4.20 DB ROBERTS COMPANY LEVEL CONFLICT MINERAL 4.20 TEMPLATE 1-17-17.xls"; // hssf
 			//fileName = "American Electro CFSI CMRT 4-20.xlsx"; // xssf
-			fileName = "CID002515  Carlisle_CMRT_4-20_CIT_01-30-2017.xlsx"; // cannot be read by both
+			//fileName = "CID002515  Carlisle_CMRT_4-20_CIT_01-30-2017.xlsx"; // cannot be read by both
 			readExcel.read(fileName);
 		}
 		catch(Exception e) {
