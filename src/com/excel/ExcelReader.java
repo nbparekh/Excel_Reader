@@ -36,7 +36,7 @@ public abstract class ExcelReader {
         this.excelWB = excelWB;
     }
 
-    public void readWorkbooks() {
+    public void readWorkbooks() throws XLSFatalException {
         FormulaEvaluator evaluator = this.excelWB.getCreationHelper().createFormulaEvaluator();
         for (int intCount = 0; intCount < sheetsToRead.length; intCount++) {
             this.excelWS = this.excelWB.getSheetAt(sheetsToRead[intCount]);
@@ -97,38 +97,42 @@ public abstract class ExcelReader {
                     if (row == null) {
                         continue;
                     }
-
-                    for (int c = 0; c < row.getLastCellNum(); c++) {
-                        Cell cell = row.getCell(c);
-                        String value;
-                        CellValue cellValue = evaluator.evaluate(cell);
-                        if (cellValue != null) {
-                            switch (cellValue.getCellTypeEnum()) {
-                                case NUMERIC:
-                                    value = String.valueOf(cellValue.getNumberValue());
-                                    break;
-                                case STRING:
-                                    value = cellValue.getStringValue();
-                                    break;
-                                case BLANK:
-                                    value = "";
-                                    break;
-                                case BOOLEAN:
-                                    value = String.valueOf(cellValue.getBooleanValue());
-                                    break;
-                                case ERROR:
-                                    value = String.valueOf(cellValue.getErrorValue());
-                                    break;
-                                default:
-                                    value = String.valueOf(cell.getCellTypeEnum());
+                    try {
+                        for (int c = 0; c < row.getLastCellNum(); c++) {
+                            Cell cell = row.getCell(c);
+                            String value;
+                            CellValue cellValue = evaluator.evaluate(cell);
+                            if (cellValue != null) {
+                                switch (cellValue.getCellTypeEnum()) {
+                                    case NUMERIC:
+                                        value = String.valueOf(cellValue.getNumberValue());
+                                        break;
+                                    case STRING:
+                                        value = cellValue.getStringValue();
+                                        break;
+                                    case BLANK:
+                                        value = "";
+                                        break;
+                                    case BOOLEAN:
+                                        value = String.valueOf(cellValue.getBooleanValue());
+                                        break;
+                                    case ERROR:
+                                        value = String.valueOf(cellValue.getErrorValue());
+                                        break;
+                                    default:
+                                        value = String.valueOf(cell.getCellTypeEnum());
+                                }
+                                System.out.print(value + "\t");
                             }
-                            System.out.print(value + "\t");
                         }
+                    } catch (Exception ex) {
+                        throw new XLSFatalException("Can't access external reference");
                     }
                     System.out.println("");
                 }
             }
         }
+
     }
 
     public FileInputStream getFileInputStream(String fileName) throws XLSFatalException {

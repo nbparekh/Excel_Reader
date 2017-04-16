@@ -9,6 +9,7 @@ import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.poi.openxml4j.exceptions.OLE2NotOfficeXmlFileException;
 import org.apache.poi.ss.usermodel.Workbook;
 
 public class ReadCorrectExcel {
@@ -23,28 +24,30 @@ public class ReadCorrectExcel {
         this.excelReader = excelReader;
     }
 
-    public void read(String fileName) throws XLSFatalException {
+    public void read(String fileName) {
 
         ExcelReader reader = null;
         InputStream fis = null;
         Workbook excelWB = null;
-        if (fileName.endsWith("xls")) {
-            reader = new HSSFExcelReader();
+        try {
+            reader = new XSSFExcelReader();
             fis = reader.getFileInputStream(fileName);
             excelWB = reader.getWorkbookObj(fis);
             reader.setWorkbook(excelWB);
             reader.readWorkbooks();
-        } else {
-            if (fileName.endsWith("xlsx")) {
-
-                reader = new XSSFExcelReader();
+        } catch (OLE2NotOfficeXmlFileException ex) {
+            try {
+                reader = new HSSFExcelReader();
                 fis = reader.getFileInputStream(fileName);
                 excelWB = reader.getWorkbookObj(fis);
                 reader.setWorkbook(excelWB);
                 reader.readWorkbooks();
+            } catch (XLSFatalException ex1) {
+                Logger.getLogger(ReadCorrectExcel.class.getName()).log(Level.SEVERE, new StringBuilder().append(fileName).append(" ").append(ex1.getMessage()).toString());
             }
+        } catch (XLSFatalException ex) {
+            Logger.getLogger(ReadCorrectExcel.class.getName()).log(Level.SEVERE, ex.getMessage());
         }
-
     }
 
     public static void main(String[] args) {
@@ -58,11 +61,7 @@ public class ReadCorrectExcel {
             }
         });
         for (File excelFile : excelFiles) {
-            try {
-                readExcel.read(excelFile.getName());
-            } catch (XLSFatalException ex) {
-                Logger.getLogger(ReadCorrectExcel.class.getName()).log(Level.SEVERE, "Cannot Read this type of File", ex);
-            }
+            readExcel.read(excelFile.getName());
         }
     }
 
